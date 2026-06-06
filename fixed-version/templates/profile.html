@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IDOR Lab — Profile #{{ user.id }} [FIXED]</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0d1117;
+      --surface: #161b22;
+      --border:  #30363d;
+      --accent:  #f85149;
+      --green:   #3fb950;
+      --blue:    #58a6ff;
+      --text:    #e6edf3;
+      --muted:   #8b949e;
+    }
+
+    body { background:var(--bg); color:var(--text); font-family:'Courier New',monospace; min-height:100vh; padding:2rem; }
+
+    nav {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:0.8rem 1.2rem; background:var(--surface); border:1px solid var(--border);
+      border-radius:8px; margin-bottom:2rem;
+    }
+    nav .brand { color:var(--green); font-weight:bold; letter-spacing:2px; }
+    nav .info  { color:var(--muted); font-size:0.82rem; }
+    nav a      { color:var(--blue); font-size:0.82rem; text-decoration:none; }
+    nav a:hover { text-decoration:underline; }
+
+    .fixed-banner {
+      background: rgba(63,185,80,0.1);
+      border: 1px solid var(--green);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 1.5rem;
+      font-size: 0.82rem;
+      color: var(--green);
+    }
+    .fixed-banner strong { display:block; font-size:0.9rem; margin-bottom:4px; }
+
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+    @media (max-width:700px) { .grid { grid-template-columns:1fr; } }
+
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1.5rem; }
+
+    .card h2 { font-size:0.78rem; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-bottom:1.2rem; border-bottom:1px solid var(--border); padding-bottom:8px; }
+
+    .field { margin-bottom:1rem; }
+    .field label { display:block; font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+    .field .val { color:var(--text); font-size:0.9rem; }
+    .uid { display:inline-block; background:rgba(63,185,80,0.1); border:1px solid rgba(63,185,80,0.3); border-radius:4px; padding:2px 8px; color:var(--green); font-weight:bold; }
+
+    input, textarea { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); padding:8px 12px; font-family:inherit; font-size:0.88rem; margin-bottom:0.8rem; resize:vertical; transition:border-color 0.2s; }
+    input:focus, textarea:focus { outline:none; border-color:var(--green); }
+
+    button { background:var(--green); border:none; border-radius:6px; color:#000; padding:9px 18px; font-family:inherit; font-size:0.85rem; font-weight:bold; cursor:pointer; letter-spacing:1px; transition:opacity 0.2s; }
+    button:hover { opacity:0.85; }
+
+    #response { margin-top:1rem; font-size:0.8rem; padding:10px; border-radius:6px; display:none; white-space:pre-wrap; }
+    .resp-ok  { background:rgba(63,185,80,0.1);  border:1px solid var(--green);  color:var(--green); }
+    .resp-err { background:rgba(248,81,73,0.1);  border:1px solid var(--accent); color:var(--accent); }
+
+    .fix-box {
+      background: rgba(88,166,255,0.06);
+      border: 1px solid rgba(88,166,255,0.3);
+      border-radius: 8px;
+      padding: 1.2rem;
+      margin-top: 1rem;
+    }
+    .fix-box h3 { color:var(--blue); font-size:0.82rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.8rem; }
+
+    code { background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:3px; font-size:0.82rem; color:var(--text); }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <span class="brand">✅ IDOR LAB — FIXED</span>
+    <span class="info">Logged in as: <strong>{{ session.username }}</strong> (ID: {{ current_user_id }})</span>
+    <span>
+      <a href="/users">All Users</a> &nbsp;|&nbsp;
+      <a href="/logout">Logout</a>
+    </span>
+  </nav>
+
+  <div class="fixed-banner">
+    <strong>✅ AUTHORIZATION CHECK ACTIVE</strong>
+    This version validates <code>session["user_id"] == user_id</code> before any update.
+    Attempting to modify another user's profile returns <code>HTTP 403 Forbidden</code>.
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <h2>📄 Profile — User #{{ user.id }}</h2>
+      <div class="field"><label>User ID</label><span class="uid">{{ user.id }}</span></div>
+      <div class="field"><label>Username</label><span class="val">{{ user.username }}</span></div>
+      <div class="field"><label>Email</label><span class="val">{{ user.email }}</span></div>
+      <div class="field"><label>Bio</label><span class="val">{{ user.bio }}</span></div>
+      {% if current_user_id == user.id %}
+        <p style="color:var(--green); font-size:0.8rem; margin-top:1rem;">✅ This is your profile. You may edit it.</p>
+      {% else %}
+        <p style="color:var(--accent); font-size:0.8rem; margin-top:1rem;">🔒 Read-only — this belongs to another user.</p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>✏️ Update Profile</h2>
+
+      <label style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">
+        Target User ID (try changing — server will reject it!)
+      </label>
+      <input type="number" id="target_id" value="{{ current_user_id }}" min="1"/>
+
+      <label style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">New Username</label>
+      <input type="text" id="new_username" value="{{ user.username }}"/>
+
+      <label style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">New Email</label>
+      <input type="text" id="new_email" value="{{ user.email }}"/>
+
+      <label style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">New Bio</label>
+      <textarea id="new_bio" rows="3">{{ user.bio }}</textarea>
+
+      <button onclick="submitUpdate()">SEND REQUEST →</button>
+
+      <div id="response"></div>
+
+      <div class="fix-box">
+        <h3>🔐 The Fix</h3>
+        <p style="font-size:0.8rem; color:var(--muted); line-height:1.6;">
+          Change Target User ID to <code>1</code>, <code>2</code>, or <code>3</code> and send —
+          the server will return <code>403 Forbidden</code> because your session
+          (<code>user_id={{ current_user_id }}</code>) doesn't own that resource.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    async function submitUpdate() {
+      const targetId = document.getElementById('target_id').value;
+      const body = new FormData();
+      body.append('username', document.getElementById('new_username').value);
+      body.append('email',    document.getElementById('new_email').value);
+      body.append('bio',      document.getElementById('new_bio').value);
+
+      const resp = await fetch(`/profile/${targetId}/update`, { method: 'POST', body });
+      const data = await resp.json();
+      const el   = document.getElementById('response');
+      el.style.display = 'block';
+      el.className  = resp.ok ? 'resp-ok' : 'resp-err';
+      el.textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+
+</body>
+</html>

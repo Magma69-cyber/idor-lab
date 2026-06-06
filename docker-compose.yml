@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  vulnerable:
+    build: ./vulnerable-version
+    ports:
+      - "5000:5000"
+    container_name: idor-vulnerable
+    volumes:
+      - vuln_db:/app
+
+  fixed:
+    build: ./fixed-version
+    ports:
+      - "5001:5001"
+    container_name: idor-fixed
+    volumes:
+      - fixed_db:/app
+
+volumes:
+  vuln_db:
+  fixed_db:
